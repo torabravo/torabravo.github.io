@@ -7,8 +7,7 @@ rect.act{
 }
 
 text {
-	fill:gray;
-	font-family: verdana;
+	fill:gray;	
 	font-size: 11px;
 }
 
@@ -19,4 +18,11 @@ svg {
 
 body{
 	margin: 20px 0;
+	font-family: verdana;
+}
+
+h1{
+	 text-align: center;
+	 font-size: 15px;
+	 text-decoration:none;
 }

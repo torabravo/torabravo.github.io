@@ -1,5 +1,6 @@
 open System
 open System.Text
+open System.IO
 
 type Day = { Number:int; Date:DateTime }
 
@@ -39,6 +40,7 @@ let render years =
     let sb = new StringBuilder()
     renderYears years 0 |> List.iter(fun s -> sb.Append(s) |> ignore)
     "<link href='styles.css' rel='stylesheet'/>" +
+    "<h1><a href='http://waitbutwhy.com/2015/12/the-tail-end.html'>The Tail End</a></h1>" +
     "<svg height=1200 width=1400>" + sb.ToString() + "</svg>"
 
 
@@ -58,4 +60,5 @@ let getData () =
 
 let years = getData() |> List.ofSeq
 let str = render years
-System.IO.File.WriteAllText(@"c:\Users\torabravo\Desktop\life\index.html", str)
+let path = Path.Combine(__SOURCE_DIRECTORY__, "index.html")
+File.WriteAllText(path, str)
