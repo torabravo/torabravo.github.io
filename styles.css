@@ -1,0 +1,22 @@
+rect.psv{
+	fill:lightgrey;
+}
+
+rect.act{
+	fill:#607D8B;
+}
+
+text {
+	fill:gray;
+	font-family: verdana;
+	font-size: 11px;
+}
+
+svg {
+	display: block;
+	margin: auto;
+}
+
+body{
+	margin: 20px 0;
+}
