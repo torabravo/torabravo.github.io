@@ -16,13 +16,16 @@ let daySize = 5
 let offset = daySize + 2
 let yearOffset = 33
 
+
 let renderDay day x y =
     let clas = if (day.Number >= 0 && day.Date <= DateTime.Now) then "act" else "psv"
     sprintf "<rect width='%d' height='%d' x='%d' y='%d' id='%d' class='%s'/>" daySize daySize x y day.Number clas
 
+
 let renderYearRow (days:Day list) y =
     days 
     |> List.mapi (fun i day -> renderDay day (i*offset + yearOffset) y)
+
 
 let renderYear (year, y) =
     let textOffset = y + 10
@@ -31,34 +34,37 @@ let renderYear (year, y) =
     let sndRowDays = (year.Days |> List.skip 182 |> renderYearRow) (y + offset)
     text :: List.concat [fstRowDays; sndRowDays]
 
-let renderYears (years:Year list) y =
-    years
-    |> List.mapi (fun i year -> renderYear(year, i*offset*2 + y))
-    |> List.concat
 
-let render years =   
+let render decades =
     let sb = new StringBuilder()
-    renderYears years 0 |> List.iter(fun s -> sb.Append(s) |> ignore)
-    "<link href='styles.css' rel='stylesheet'/>" +
-    "<h1><a href='http://waitbutwhy.com/2015/12/the-tail-end.html'>The Tail End</a></h1>" +
-    "<svg height=1200 width=1400>" + sb.ToString() + "</svg>"
+    sb.Append "<link href='styles.css' rel='stylesheet'/>
+    <div>Inspired by <a href='http://waitbutwhy.com/2015/12/the-tail-end.html'>The Tail End</a></div>
+    <svg height=1200 width=1400>" |> ignore
+    
+    let mutable y = 0;
+    
+    for dec in decades do
+        for year in dec.Years do
+            renderYear (year, y) |> List.iter(fun s -> sb.Append(s) |> ignore)
+            y <- y + offset*2
+        y <- y + offset
+
+    sb.ToString() + "</svg>"    
 
 
-let getAllDays (first:DateTime) (last:DateTime) =
-    new DateTime(first.Year, 1, 1)
-    |> Array.unfold (fun (day:DateTime) -> if day >= last then None else Some (day, day.AddDays(1.0)))
-    |> Array.mapi (fun i d-> { Number=(if d >= first then i else -1); Date=d})
-
-
-let getData () =
-    let born = new DateTime (1984,9,30)
-    let die = born.AddYears(80)
-    getAllDays born die
-    |> Array.groupBy (fun d -> d.Date.Year) 
+let getData (born:DateTime) lifeExpectancy =
+    let die = born.AddYears(lifeExpectancy)
+    new DateTime(born.Year, 1, 1)
+    |> Array.unfold (fun (day:DateTime) -> if day >= die then None else Some (day, day.AddDays(1.0)))
+    |> Array.mapi (fun i d-> { Number=(if d >= born then i else -1); Date=d})
+    |> Array.groupBy (fun d -> d.Date.Year)
     |> Array.map (fun (year, days) -> { Year=year; Days=days |> List.ofSeq })
+    |> Array.chunkBySize (10)
+    |> Array.map (fun years -> {Years = List.ofArray years})
 
 
-let years = getData() |> List.ofSeq
-let str = render years
+let born = new DateTime (1984,9,30)
+let data = getData born 80 |> List.ofSeq
+let str = render data
 let path = Path.Combine(__SOURCE_DIRECTORY__, "index.html")
 File.WriteAllText(path, str)

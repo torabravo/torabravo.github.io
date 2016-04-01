@@ -1,0 +1,9 @@
+{
+	Born:"1984-09-30",
+	LifeEpectancy:80,
+	EventGroups:
+	[
+		{Name:"wasted",
+		Events:[]
+	]
+}
