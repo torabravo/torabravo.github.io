@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Kicker</title>
+
+	<style type="text/css">
+		label {margin-right:20px;}
+
+		table { border-collapse: collapse;}
+
+
+		.table1 td, .table1 th {border: 1px solid grey;  padding: 5px;}
+
+		p {
+		    font-family: Arial; 
+		    font-weight: normal;
+		    font-size: 10pt; /* Размер шрифта в пунктах */ 
+		    text-align: center;
+		   }
+		.muy {
+		    font-family: Arial; 
+		    font-weight: normal;
+		    font-size: 80px; /* Размер шрифта в пунктах */ 
+		    text-align: center;
+		   }
+
+	</style>
+</head>
+<body>
+	<br/>
+	<label>Маша А.<input type='checkbox' value='Маша А.' class='plyr' checked/></label>
+	<label>Маша Л.<input type='checkbox' value='Маша Л.' class='plyr' checked/></label>
+	<label>Кирилл<input type='checkbox' value='Кирилл' class='plyr' checked/></label>
+	<label>Андрей<input type='checkbox' value='Андрей' class='plyr' checked/></label>
+	<label>Дима<input type='checkbox' value='Дима' class='plyr' checked/></label>
+	<button id='btn' type='button'>Расставить</button>
+	<br/>
+	<hr/>
+
+	<table class="table1">
+	<tr>
+	  <th style="color:red"><p>Вр. красный</th>
+	    <th style="color:blue"><p>     </th>
+	    <th style="color:red"><p>Нап. красный</th>
+	    <th style="color:blue"><p>     </th>
+	    <th style="color:blue"><p>Вр. синий</th>
+	    <th style="color:blue"><p>     </th>
+	    <th style="color:blue"><p>Нап. синий</th>
+	    <th style="color:blue"><p>     </th>
+	    </tr>
+	  <tr>
+	    <td><p><b id='ag_red'></b></td>
+	    <td><p>0</td>
+	    <td><p><b id='af_red'></b></td>
+	    <td><p>0</td>
+	    <td><p><b id='ag_blue'></b></td>
+	    <td><p>0</td>
+	    <td><p><b id='af_blue'></b></td>
+	    <td><p>0</td>
+	   </tr>
+	</table>
+
+	<br/>
+	<hr/>
+
+	<table class="muy">
+
+	  <tr>
+	    <td height="100" width="500" style="color:red"><b id='g_red'></b></td>
+	    <td rowspan=4><img src="table.png"></td> 
+	    <td></td> 
+	  </tr>
+	  
+	  <tr>
+	  <td></td> 
+	  <td height="100" width="500" style="color:blue"><b id='f_blue'></b></td>
+	  </tr>
+	  
+	  <tr>
+	    <td height="100" style="color:red"><b id='f_red'></b></td>
+	    <td></td>
+	  </tr>
+	    <tr>
+	  <td></td> 
+	  <td height="100" style="color:blue"><b id='g_blue'></b></td>
+	  </tr>
+	  
+	</table>
+
+	<br/>
+
+	<script type="text/javascript">
+		function shuffle(a) {
+		  var j, x, i;
+		  for (i = a.length; i; i--) {
+		    j = Math.floor(Math.random() * i);
+		    x = a[i - 1];
+		    a[i - 1] = a[j];
+		    a[j] = x;
+		  }
+		};
+
+		document.getElementById('btn').onclick = function(e) {
+			var elements = document.getElementsByClassName("plyr");
+		  var players = [];
+		  
+		  Array.prototype.forEach.call(elements, function(el) {
+		        if(el.checked)
+		      		players.push(el.value);
+			});
+		  
+		  shuffle(players);
+		  document.getElementById('g_red').innerHTML = players[0];
+		  document.getElementById('f_red').innerHTML = players[1];
+		  document.getElementById('g_blue').innerHTML = players[2];
+		  document.getElementById('f_blue').innerHTML = players[3];
+		  
+		    document.getElementById('ag_red').innerHTML = players[0];
+		  document.getElementById('af_red').innerHTML = players[1];
+		  document.getElementById('ag_blue').innerHTML = players[2];
+		  document.getElementById('af_blue').innerHTML = players[3];
+		};
+	</script>
+
+</body>
+</html>

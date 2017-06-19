@@ -42,7 +42,7 @@ let render decades =
     <svg height=1200 width=1400>" |> ignore
     
     let mutable y = 0;
-    
+    dec
     for dec in decades do
         for year in dec.Years do
             renderYear (year, y) |> List.iter(fun s -> sb.Append(s) |> ignore)
