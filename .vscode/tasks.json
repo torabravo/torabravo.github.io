@@ -4,6 +4,6 @@
     "version": "0.1.0",
     "command": "elm",
     "isShellCommand": true,
-    "args": ["make", "${workspaceRoot}\\Main.elm", "--output", "${workspaceRoot}\\bundle.js"],
+    "args": ["make", "${workspaceRoot}\\Main.elm", "--output", "${workspaceRoot}\\bundle.js"],//, "--debug"],
     "showOutput": "silent"
 }
