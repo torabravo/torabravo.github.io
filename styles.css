@@ -32,7 +32,7 @@ rect.selected{
 	background-color: whitesmoke;
 }
 
-.event b{ margin-right: 10px; }
+.event b{ margin-right: 10px; cursor: pointer;}
 .event span{ color:lightgray; font-size: 12px; }
 
 svg {
