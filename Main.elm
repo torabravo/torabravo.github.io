@@ -8,6 +8,7 @@ import Task
 import Svg.Attributes exposing (width, height)
 import Date exposing (Date)
 import Date.Extra.Compare
+import Date.Extra.Duration
 import Date.Extra.Create
 import Date.Extra.Utils
 import Date.Extra.Format
@@ -21,6 +22,27 @@ import Round
 born : Date
 born =
     toDate "1984/09/30"
+
+
+allDays : List Date
+allDays =
+    let
+        from =
+            Date.Extra.TimeUnit.startOfTime Date.Extra.TimeUnit.Year born
+
+        to =
+            Date.Extra.Duration.add Date.Extra.Duration.Year 70 from
+
+        days =
+            Date.Extra.Duration.diffDays to from
+    in
+        from
+            |> Date.Extra.Utils.dayList days
+            |> List.map (Date.Extra.TimeUnit.startOfTime Date.Extra.TimeUnit.Day)
+
+
+
+--------------------------------------------------------------
 
 
 toDate : String -> Date
@@ -94,16 +116,8 @@ getEventInfo event =
 init : ( Model, Cmd Msg )
 init =
     let
-        fromDate =
-            Date.Extra.Create.dateFromFields (Date.year born) Date.Jan 1 1 0 0 0
-
-        dates =
-            fromDate
-                |> Date.Extra.Utils.dayList (70 * 365)
-                |> List.map (Date.Extra.TimeUnit.startOfTime Date.Extra.TimeUnit.Day)
-
         model =
-            { dates = dates
+            { dates = allDays
             , today = Date.fromTime 0
             , events =
                 [ Point "born" born

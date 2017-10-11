@@ -12569,6 +12569,15 @@ var _user$project$Main$toDate = function (str) {
 			_elm_lang$core$Date$fromString(str)));
 };
 var _user$project$Main$born = _user$project$Main$toDate('1984/09/30');
+var _user$project$Main$allDays = function () {
+	var from = A2(_rluiten$elm_date_extra$Date_Extra_TimeUnit$startOfTime, _rluiten$elm_date_extra$Date_Extra_TimeUnit$Year, _user$project$Main$born);
+	var to = A3(_rluiten$elm_date_extra$Date_Extra_Duration$add, _rluiten$elm_date_extra$Date_Extra_Duration$Year, 70, from);
+	var days = A2(_rluiten$elm_date_extra$Date_Extra_Duration$diffDays, to, from);
+	return A2(
+		_elm_lang$core$List$map,
+		_rluiten$elm_date_extra$Date_Extra_TimeUnit$startOfTime(_rluiten$elm_date_extra$Date_Extra_TimeUnit$Day),
+		A2(_rluiten$elm_date_extra$Date_Extra_Utils$dayList, days, from));
+}();
 var _user$project$Main$Model = F6(
 	function (a, b, c, d, e, f) {
 		return {dates: a, today: b, events: c, message: d, selectedEvent: e, selectedDay: f};
@@ -12589,21 +12598,8 @@ var _user$project$Main$GetToday = function (a) {
 	return {ctor: 'GetToday', _0: a};
 };
 var _user$project$Main$init = function () {
-	var fromDate = A7(
-		_rluiten$elm_date_extra$Date_Extra_Create$dateFromFields,
-		_elm_lang$core$Date$year(_user$project$Main$born),
-		_elm_lang$core$Date$Jan,
-		1,
-		1,
-		0,
-		0,
-		0);
-	var dates = A2(
-		_elm_lang$core$List$map,
-		_rluiten$elm_date_extra$Date_Extra_TimeUnit$startOfTime(_rluiten$elm_date_extra$Date_Extra_TimeUnit$Day),
-		A2(_rluiten$elm_date_extra$Date_Extra_Utils$dayList, 70 * 365, fromDate));
 	var model = {
-		dates: dates,
+		dates: _user$project$Main$allDays,
 		today: _elm_lang$core$Date$fromTime(0),
 		events: {
 			ctor: '::',
