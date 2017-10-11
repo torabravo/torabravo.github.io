@@ -13,7 +13,9 @@ import Date.Extra.Utils
 import Date.Extra.Format
 import Date.Extra.Config.Config_lt_lt
 import Date.Extra.TimeUnit
+import Date.Extra.Duration
 import List.Extra
+import Round
 
 
 born : Date
@@ -29,6 +31,16 @@ toDate str =
 datetoString : Date -> String
 datetoString date =
     Date.Extra.Format.format Date.Extra.Config.Config_lt_lt.config "%Y/%m/%d" date
+
+
+daysToString : Int -> String
+daysToString days =
+    if days < 30 then
+        toString days ++ " d."
+    else if days > 30 && days < 365 then
+        Round.round 1 (toFloat days / 30) ++ " m."
+    else
+        Round.round 1 (toFloat days / 365) ++ " y."
 
 
 
@@ -71,10 +83,12 @@ getEventInfo event =
             ( name, datetoString date )
 
         Period name from to ->
-            ( name, (datetoString from) ++ "-" ++ (datetoString to) )
+            --( name, (datetoString from) ++ "-" ++ (datetoString to) )
+            ( name, Date.Extra.Duration.diffDays to from |> daysToString )
 
         EventList name list ->
-            ( name, "[" ++ (list |> List.length |> toString) ++ "]" )
+            --( name, "[" ++ (list |> List.length |> toString) ++ "]" )
+            ( name, "" )
 
 
 init : ( Model, Cmd Msg )
@@ -167,7 +181,7 @@ viewDay model date x y =
 
 viewYearRow : Model -> Int -> List Date -> List (Svg Msg)
 viewYearRow model y days =
-    days |> List.indexedMap (\i day -> viewDay model day (i * 7 + 33) y)
+    days |> List.indexedMap (\i day -> viewDay model day (i * 6 + 33) y)
 
 
 viewYear : Model -> Int -> List Date -> List (Svg Msg)
@@ -185,7 +199,7 @@ viewYear model y year =
             year |> List.take 182 |> viewYearRow model y
 
         sndRow =
-            year |> List.drop 182 |> viewYearRow model (y + 7)
+            year |> List.drop 182 |> viewYearRow model (y + 6)
     in
         Svg.text_ [ Svg.Attributes.x "0", Svg.Attributes.y (toString (y + 10)), Svg.Attributes.class "year" ] [ Svg.text (txt) ] :: fstRow ++ sndRow
 
@@ -194,7 +208,7 @@ viewDecade : Model -> Int -> List Date -> List (Svg Msg)
 viewDecade model y decade =
     decade
         |> List.Extra.groupWhile (\x y -> Date.year x == Date.year y)
-        |> List.indexedMap (\i year -> viewYear model (y + i * 14) year)
+        |> List.indexedMap (\i year -> viewYear model (y + i * 12) year)
         |> List.concat
 
 
@@ -228,18 +242,28 @@ viewEvent model event =
 view : Model -> Html Msg
 view model =
     let
-        svgNodes =
-            viewDecade model 0 model.dates
-
         eventsHtml =
             List.map (viewEvent model) model.events
 
         current =
             model.selectedDay |> Maybe.map datetoString |> Maybe.withDefault ""
 
-        --|> List.Extra.groupWhile (\x y -> (Date.year x) // 10 == (Date.year y) // 10)
-        --|> List.indexedMap (\i decade -> viewDecade (i * (List.length decade * 14 + 10)) decade)
-        --|> List.concat
+        decades =
+            model.dates
+                |> List.Extra.groupWhile (\x y -> (Date.year x) // 10 == (Date.year y) // 10)
+
+        heights =
+            decades
+                |> List.map (\d -> List.length d * 12 // 365 + 5)
+                |> List.scanl (+) 0
+                |> List.take (List.length decades)
+
+        svgNodes =
+            List.Extra.zip decades heights
+                |> List.map (\( d, h ) -> viewDecade model h d)
+                |> List.concat
+
+        --viewDecade model 0 model.dates
     in
         div [ class "columns" ]
             [ div [ class "column is-narrow" ] eventsHtml

@@ -10555,6 +10555,215 @@ var _elm_lang$svg$Svg_Attributes$accumulate = _elm_lang$virtual_dom$VirtualDom$a
 var _elm_lang$svg$Svg_Attributes$accelerate = _elm_lang$virtual_dom$VirtualDom$attribute('accelerate');
 var _elm_lang$svg$Svg_Attributes$accentHeight = _elm_lang$virtual_dom$VirtualDom$attribute('accent-height');
 
+var _myrho$elm_round$Round$funNum = F3(
+	function (fun, s, fl) {
+		return A2(
+			_elm_lang$core$Maybe$withDefault,
+			1 / 0,
+			_elm_lang$core$Result$toMaybe(
+				_elm_lang$core$String$toFloat(
+					A2(fun, s, fl))));
+	});
+var _myrho$elm_round$Round$splitComma = function (str) {
+	var _p0 = A2(_elm_lang$core$String$split, '.', str);
+	if (_p0.ctor === '::') {
+		if (_p0._1.ctor === '::') {
+			return {ctor: '_Tuple2', _0: _p0._0, _1: _p0._1._0};
+		} else {
+			return {ctor: '_Tuple2', _0: _p0._0, _1: '0'};
+		}
+	} else {
+		return {ctor: '_Tuple2', _0: '0', _1: '0'};
+	}
+};
+var _myrho$elm_round$Round$toDecimal = function (fl) {
+	var _p1 = A2(
+		_elm_lang$core$String$split,
+		'e',
+		_elm_lang$core$Basics$toString(fl));
+	if (_p1.ctor === '::') {
+		if (_p1._1.ctor === '::') {
+			var _p4 = _p1._1._0;
+			var _p2 = function () {
+				var hasSign = _elm_lang$core$Native_Utils.cmp(fl, 0) < 0;
+				var _p3 = _myrho$elm_round$Round$splitComma(_p1._0);
+				var b = _p3._0;
+				var a = _p3._1;
+				return {
+					ctor: '_Tuple3',
+					_0: hasSign ? '-' : '',
+					_1: hasSign ? A2(_elm_lang$core$String$dropLeft, 1, b) : b,
+					_2: a
+				};
+			}();
+			var sign = _p2._0;
+			var before = _p2._1;
+			var after = _p2._2;
+			var e = A2(
+				_elm_lang$core$Maybe$withDefault,
+				0,
+				_elm_lang$core$Result$toMaybe(
+					_elm_lang$core$String$toInt(
+						A2(_elm_lang$core$String$startsWith, '+', _p4) ? A2(_elm_lang$core$String$dropLeft, 1, _p4) : _p4)));
+			var newBefore = (_elm_lang$core$Native_Utils.cmp(e, 0) > -1) ? before : ((_elm_lang$core$Native_Utils.cmp(
+				_elm_lang$core$Basics$abs(e),
+				_elm_lang$core$String$length(before)) < 0) ? A2(
+				_elm_lang$core$Basics_ops['++'],
+				A2(
+					_elm_lang$core$String$left,
+					_elm_lang$core$String$length(before) - _elm_lang$core$Basics$abs(e),
+					before),
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'.',
+					A2(
+						_elm_lang$core$String$right,
+						_elm_lang$core$Basics$abs(e),
+						before))) : A2(
+				_elm_lang$core$Basics_ops['++'],
+				'0.',
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					A2(
+						_elm_lang$core$String$repeat,
+						_elm_lang$core$Basics$abs(e) - _elm_lang$core$String$length(before),
+						'0'),
+					before)));
+			var newAfter = (_elm_lang$core$Native_Utils.cmp(e, 0) < 1) ? after : ((_elm_lang$core$Native_Utils.cmp(
+				e,
+				_elm_lang$core$String$length(after)) < 0) ? A2(
+				_elm_lang$core$Basics_ops['++'],
+				A2(_elm_lang$core$String$left, e, after),
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'.',
+					A2(
+						_elm_lang$core$String$right,
+						_elm_lang$core$String$length(after) - e,
+						after))) : A2(
+				_elm_lang$core$Basics_ops['++'],
+				after,
+				A2(
+					_elm_lang$core$String$repeat,
+					e - _elm_lang$core$String$length(after),
+					'0')));
+			return A2(
+				_elm_lang$core$Basics_ops['++'],
+				sign,
+				A2(_elm_lang$core$Basics_ops['++'], newBefore, newAfter));
+		} else {
+			return _p1._0;
+		}
+	} else {
+		return '';
+	}
+};
+var _myrho$elm_round$Round$truncate = function (n) {
+	return (_elm_lang$core$Native_Utils.cmp(n, 0) < 0) ? _elm_lang$core$Basics$ceiling(n) : _elm_lang$core$Basics$floor(n);
+};
+var _myrho$elm_round$Round$roundFun = F3(
+	function (functor, s, fl) {
+		if (_elm_lang$core$Native_Utils.eq(s, 0)) {
+			return _elm_lang$core$Basics$toString(
+				functor(fl));
+		} else {
+			if (_elm_lang$core$Native_Utils.cmp(s, 0) < 0) {
+				return function (r) {
+					return (!_elm_lang$core$Native_Utils.eq(r, '0')) ? A2(
+						_elm_lang$core$Basics_ops['++'],
+						r,
+						A2(
+							_elm_lang$core$String$repeat,
+							_elm_lang$core$Basics$abs(s),
+							'0')) : r;
+				}(
+					A3(
+						_myrho$elm_round$Round$roundFun,
+						functor,
+						0,
+						A2(
+							F2(
+								function (x, y) {
+									return x / y;
+								}),
+							fl,
+							A2(
+								F2(
+									function (x, y) {
+										return Math.pow(x, y);
+									}),
+								10,
+								_elm_lang$core$Basics$abs(
+									_elm_lang$core$Basics$toFloat(s))))));
+			} else {
+				var dd = (_elm_lang$core$Native_Utils.cmp(fl, 0) < 0) ? 2 : 1;
+				var n = (_elm_lang$core$Native_Utils.cmp(fl, 0) < 0) ? -1 : 1;
+				var e = Math.pow(10, s);
+				var _p5 = _myrho$elm_round$Round$splitComma(
+					_myrho$elm_round$Round$toDecimal(fl));
+				var before = _p5._0;
+				var after = _p5._1;
+				var a = A3(
+					_elm_lang$core$String$padRight,
+					s + 1,
+					_elm_lang$core$Native_Utils.chr('0'),
+					after);
+				var b = A2(_elm_lang$core$String$left, s, a);
+				var c = A2(_elm_lang$core$String$dropLeft, s, a);
+				var f = functor(
+					A2(
+						_elm_lang$core$Maybe$withDefault,
+						_elm_lang$core$Basics$toFloat(e),
+						_elm_lang$core$Result$toMaybe(
+							_elm_lang$core$String$toFloat(
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									(_elm_lang$core$Native_Utils.cmp(fl, 0) < 0) ? '-' : '',
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										'1',
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											b,
+											A2(_elm_lang$core$Basics_ops['++'], '.', c))))))));
+				var g = A2(
+					_elm_lang$core$String$dropLeft,
+					dd,
+					_elm_lang$core$Basics$toString(f));
+				var h = _myrho$elm_round$Round$truncate(fl) + (_elm_lang$core$Native_Utils.eq(f - (e * n), e * n) ? ((_elm_lang$core$Native_Utils.cmp(fl, 0) < 0) ? -1 : 1) : 0);
+				var j = _elm_lang$core$Basics$toString(h);
+				var i = (_elm_lang$core$Native_Utils.eq(j, '0') && ((!_elm_lang$core$Native_Utils.eq(f - (e * n), 0)) && ((_elm_lang$core$Native_Utils.cmp(fl, 0) < 0) && (_elm_lang$core$Native_Utils.cmp(fl, -1) > 0)))) ? A2(_elm_lang$core$Basics_ops['++'], '-', j) : j;
+				return A2(
+					_elm_lang$core$Basics_ops['++'],
+					i,
+					A2(_elm_lang$core$Basics_ops['++'], '.', g));
+			}
+		}
+	});
+var _myrho$elm_round$Round$round = _myrho$elm_round$Round$roundFun(_elm_lang$core$Basics$round);
+var _myrho$elm_round$Round$roundNum = _myrho$elm_round$Round$funNum(_myrho$elm_round$Round$round);
+var _myrho$elm_round$Round$ceiling = _myrho$elm_round$Round$roundFun(_elm_lang$core$Basics$ceiling);
+var _myrho$elm_round$Round$ceilingNum = _myrho$elm_round$Round$funNum(_myrho$elm_round$Round$ceiling);
+var _myrho$elm_round$Round$floor = _myrho$elm_round$Round$roundFun(_elm_lang$core$Basics$floor);
+var _myrho$elm_round$Round$floorCom = F2(
+	function (s, fl) {
+		return (_elm_lang$core$Native_Utils.cmp(fl, 0) < 0) ? A2(_myrho$elm_round$Round$ceiling, s, fl) : A2(_myrho$elm_round$Round$floor, s, fl);
+	});
+var _myrho$elm_round$Round$floorNumCom = _myrho$elm_round$Round$funNum(_myrho$elm_round$Round$floorCom);
+var _myrho$elm_round$Round$ceilingCom = F2(
+	function (s, fl) {
+		return (_elm_lang$core$Native_Utils.cmp(fl, 0) < 0) ? A2(_myrho$elm_round$Round$floor, s, fl) : A2(_myrho$elm_round$Round$ceiling, s, fl);
+	});
+var _myrho$elm_round$Round$ceilingNumCom = _myrho$elm_round$Round$funNum(_myrho$elm_round$Round$ceilingCom);
+var _myrho$elm_round$Round$floorNum = _myrho$elm_round$Round$funNum(_myrho$elm_round$Round$floor);
+var _myrho$elm_round$Round$roundCom = _myrho$elm_round$Round$roundFun(
+	function (fl) {
+		var dec = fl - _elm_lang$core$Basics$toFloat(
+			_myrho$elm_round$Round$truncate(fl));
+		return (_elm_lang$core$Native_Utils.cmp(dec, 0.5) > -1) ? _elm_lang$core$Basics$ceiling(fl) : ((_elm_lang$core$Native_Utils.cmp(dec, -0.5) < 1) ? _elm_lang$core$Basics$floor(fl) : _elm_lang$core$Basics$round(fl));
+	});
+var _myrho$elm_round$Round$roundNumCom = _myrho$elm_round$Round$funNum(_myrho$elm_round$Round$roundCom);
+
 var _rluiten$elm_date_extra$Date_Extra_Internal2$prevMonth = function (month) {
 	var _p0 = month;
 	switch (_p0.ctor) {
@@ -12309,6 +12518,24 @@ var _user$project$Main$isDateInEvent = F2(
 					_p2._1);
 		}
 	});
+var _user$project$Main$daysToString = function (days) {
+	return (_elm_lang$core$Native_Utils.cmp(days, 30) < 0) ? A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$Basics$toString(days),
+		' d.') : (((_elm_lang$core$Native_Utils.cmp(days, 30) > 0) && (_elm_lang$core$Native_Utils.cmp(days, 365) < 0)) ? A2(
+		_elm_lang$core$Basics_ops['++'],
+		A2(
+			_myrho$elm_round$Round$round,
+			1,
+			_elm_lang$core$Basics$toFloat(days) / 30),
+		' m.') : A2(
+		_elm_lang$core$Basics_ops['++'],
+		A2(
+			_myrho$elm_round$Round$round,
+			1,
+			_elm_lang$core$Basics$toFloat(days) / 365),
+		' y.'));
+};
 var _user$project$Main$datetoString = function (date) {
 	return A3(_rluiten$elm_date_extra$Date_Extra_Format$format, _rluiten$elm_date_extra$Date_Extra_Config_Config_lt_lt$config, '%Y/%m/%d', date);
 };
@@ -12325,27 +12552,11 @@ var _user$project$Main$getEventInfo = function (event) {
 			return {
 				ctor: '_Tuple2',
 				_0: _p3._0,
-				_1: A2(
-					_elm_lang$core$Basics_ops['++'],
-					_user$project$Main$datetoString(_p3._1),
-					A2(
-						_elm_lang$core$Basics_ops['++'],
-						'-',
-						_user$project$Main$datetoString(_p3._2)))
+				_1: _user$project$Main$daysToString(
+					A2(_rluiten$elm_date_extra$Date_Extra_Duration$diffDays, _p3._2, _p3._1))
 			};
 		default:
-			return {
-				ctor: '_Tuple2',
-				_0: _p3._0,
-				_1: A2(
-					_elm_lang$core$Basics_ops['++'],
-					'[',
-					A2(
-						_elm_lang$core$Basics_ops['++'],
-						_elm_lang$core$Basics$toString(
-							_elm_lang$core$List$length(_p3._1)),
-						']'))
-			};
+			return {ctor: '_Tuple2', _0: _p3._0, _1: ''};
 	}
 };
 var _user$project$Main$toDate = function (str) {
@@ -12573,7 +12784,7 @@ var _user$project$Main$viewYearRow = F3(
 			_elm_lang$core$List$indexedMap,
 			F2(
 				function (i, day) {
-					return A4(_user$project$Main$viewDay, model, day, (i * 7) + 33, y);
+					return A4(_user$project$Main$viewDay, model, day, (i * 6) + 33, y);
 				}),
 			days);
 	});
@@ -12582,7 +12793,7 @@ var _user$project$Main$viewYear = F3(
 		var sndRow = A3(
 			_user$project$Main$viewYearRow,
 			model,
-			y + 7,
+			y + 6,
 			A2(_elm_lang$core$List$drop, 182, year));
 		var fstRow = A3(
 			_user$project$Main$viewYearRow,
@@ -12631,7 +12842,7 @@ var _user$project$Main$viewDecade = F3(
 				_elm_lang$core$List$indexedMap,
 				F2(
 					function (i, year) {
-						return A3(_user$project$Main$viewYear, model, y + (i * 14), year);
+						return A3(_user$project$Main$viewYear, model, y + (i * 12), year);
 					}),
 				A2(
 					_elm_community$list_extra$List_Extra$groupWhile,
@@ -12721,6 +12932,39 @@ var _user$project$Main$viewEvent = F2(
 			{ctor: '::', _0: title, _1: subEvents});
 	});
 var _user$project$Main$view = function (model) {
+	var decades = A2(
+		_elm_community$list_extra$List_Extra$groupWhile,
+		F2(
+			function (x, y) {
+				return _elm_lang$core$Native_Utils.eq(
+					(_elm_lang$core$Date$year(x) / 10) | 0,
+					(_elm_lang$core$Date$year(y) / 10) | 0);
+			}),
+		model.dates);
+	var heights = A2(
+		_elm_lang$core$List$take,
+		_elm_lang$core$List$length(decades),
+		A3(
+			_elm_lang$core$List$scanl,
+			F2(
+				function (x, y) {
+					return x + y;
+				}),
+			0,
+			A2(
+				_elm_lang$core$List$map,
+				function (d) {
+					return (((_elm_lang$core$List$length(d) * 12) / 365) | 0) + 5;
+				},
+				decades)));
+	var svgNodes = _elm_lang$core$List$concat(
+		A2(
+			_elm_lang$core$List$map,
+			function (_p8) {
+				var _p9 = _p8;
+				return A3(_user$project$Main$viewDecade, model, _p9._1, _p9._0);
+			},
+			A2(_elm_community$list_extra$List_Extra$zip, decades, heights)));
 	var current = A2(
 		_elm_lang$core$Maybe$withDefault,
 		'',
@@ -12729,7 +12973,6 @@ var _user$project$Main$view = function (model) {
 		_elm_lang$core$List$map,
 		_user$project$Main$viewEvent(model),
 		model.events);
-	var svgNodes = A3(_user$project$Main$viewDecade, model, 0, model.dates);
 	return A2(
 		_elm_lang$html$Html$div,
 		{

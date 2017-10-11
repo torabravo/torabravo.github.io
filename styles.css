@@ -24,7 +24,6 @@ rect.selected{
 	border-left: solid 10px transparent;
     padding: 2px 5px;
     text-align: left;
-    margin-left: 20px;
 }
 
 .event.active {
