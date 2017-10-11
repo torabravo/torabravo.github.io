@@ -281,7 +281,7 @@ view model =
     in
         div [ class "columns" ]
             [ div [ class "column is-narrow" ] eventsHtml
-            , div [ class "column is-narrow" ] [ svg [ width "1400", height "1000" ] svgNodes ]
+            , div [ class "column is-narrow" ] [ svg [ width "1150", height "900" ] svgNodes ]
             , div [ class "column is-narrow" ] [ Html.text current ]
             ]
 

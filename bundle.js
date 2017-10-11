@@ -13001,10 +13001,10 @@ var _user$project$Main$view = function (model) {
 							_elm_lang$svg$Svg$svg,
 							{
 								ctor: '::',
-								_0: _elm_lang$svg$Svg_Attributes$width('1400'),
+								_0: _elm_lang$svg$Svg_Attributes$width('1150'),
 								_1: {
 									ctor: '::',
-									_0: _elm_lang$svg$Svg_Attributes$height('1000'),
+									_0: _elm_lang$svg$Svg_Attributes$height('900'),
 									_1: {ctor: '[]'}
 								}
 							},
