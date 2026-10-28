@@ -1,23 +1,247 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Long tail</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.5.3/css/bulma.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unknown Pleasures</title>
+  <style>
+    :root {
+      --bg: #080f11;
+      --line: #1c2427;
+      --line-strong: #2a3438;
+      --green: #48d597;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+    }
+
+    .stage {
+      position: relative;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 48px 16px;
+      background:
+        linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 48px 48px,
+        linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 48px 48px;
+      background-color: var(--bg);
+      overflow: hidden;
+    }
+    .stage::before {
+      /* fade the grid toward the edges */
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 30%, var(--bg) 85%);
+      pointer-events: none;
+    }
+
+    .frame {
+      position: relative;
+      width: min(100%, 80vh, 640px);
+      aspect-ratio: 1 / 1;
+      background: #000;
+      border: 1px solid var(--line-strong);
+      z-index: 1;
+    }
+
+    .frame canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+  </style>
 </head>
+<body>
+  <main class="stage">
+    <div class="frame">
+      <canvas id="plot" aria-label="Stacked green waveform plot that animates on hover"></canvas>
+    </div>
+  </main>
 
-<body style="margin-top: 20px;">
-
-    <div id="app"></div>
-  
-
-  <script src="bundle.js"></script>
   <script>
-    var app = Elm.Main.embed(document.getElementById("app"));
+  (() => {
+    // ---------- Seeded Perlin noise ----------
+    const perm = new Uint8Array(512);
+    function seed(s) {
+      const p = new Uint8Array(256);
+      for (let i = 0; i < 256; i++) p[i] = i;
+      let x = s >>> 0 || 1;
+      for (let i = 255; i > 0; i--) {
+        x ^= x << 13; x ^= x >>> 17; x ^= x << 5;
+        const j = (x >>> 0) % (i + 1);
+        [p[i], p[j]] = [p[j], p[i]];
+      }
+      for (let i = 0; i < 512; i++) perm[i] = p[i & 255];
+    }
+    const fade = t => t * t * t * (t * (t * 6 - 15) + 10);
+    const lerp = (a, b, t) => a + (b - a) * t;
+    function grad(h, x, y) {
+      switch (h & 7) {
+        case 0: return  x + y; case 1: return -x + y;
+        case 2: return  x - y; case 3: return -x - y;
+        case 4: return  x;     case 5: return -x;
+        case 6: return  y;     default: return -y;
+      }
+    }
+    function noise(x, y) {
+      const X = Math.floor(x) & 255, Y = Math.floor(y) & 255;
+      x -= Math.floor(x); y -= Math.floor(y);
+      const u = fade(x), v = fade(y);
+      const a = perm[X] + Y, b = perm[X + 1] + Y;
+      return lerp(
+        lerp(grad(perm[a], x, y),     grad(perm[b], x - 1, y),     u),
+        lerp(grad(perm[a + 1], x, y - 1), grad(perm[b + 1], x - 1, y - 1), u),
+        v
+      ); // ~[-1, 1]
+    }
+    function fbm(x, y) {
+      return noise(x, y) * 0.6 + noise(x * 2.1, y * 2.1) * 0.28 + noise(x * 4.3, y * 4.3) * 0.12;
+    }
+    function smooth(a, b, v) {
+      const t = Math.min(1, Math.max(0, (v - a) / (b - a)));
+      return t * t * (3 - 2 * t);
+    }
+
+    // Envelope: bumpy plateau in the centre, nearly flat at the edges.
+    function envelope(x) {
+      const e = 1 - smooth(0.08, 0.27, Math.abs(x - 0.5));
+      return e * e;
+    }
+
+    // ---------- Canvas setup ----------
+    const canvas = document.getElementById('plot');
+    const ctx = canvas.getContext('2d');
+    const GREEN = getComputedStyle(document.documentElement).getPropertyValue('--green').trim() || '#48d597';
+    const ROWS = 64;
+    const SAMPLES = 120;
+    const ys = new Float32Array(SAMPLES + 1);
+
+    let W = 0, H = 0;
+    function resize() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+
+    // ---------- Hover state ----------
+    let t = 0;               // signal time, only advances while hovered
+    let activity = 0;        // eased 0..1 hover intensity
+    let hovering = false;
+    const mouse = { x: 0.5, y: 0.5 };   // cursor in canvas-relative units
+
+    function tracePath(padX, plotW) {
+      ctx.moveTo(padX, ys[0]);
+      for (let i = 1; i <= SAMPLES; i++) {
+        const x0 = padX + plotW * ((i - 1) / SAMPLES);
+        const x1 = padX + plotW * (i / SAMPLES);
+        ctx.quadraticCurveTo(x0, ys[i - 1], (x0 + x1) / 2, (ys[i - 1] + ys[i]) / 2);
+      }
+      ctx.lineTo(padX + plotW, ys[SAMPLES]);
+    }
+
+    function draw() {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, W, H);
+
+      const padX = W * 0.2;
+      const top = H * 0.2;
+      const bottom = H * 0.86;
+      const spacing = (bottom - top) / (ROWS - 1);
+      const amp = spacing * 9;
+      const plotW = W - padX * 2;
+      const jitter = t * 3.2;
+
+      // Cursor position mapped into plot space
+      const mx = (mouse.x * W - padX) / plotW;
+      const mrow = (mouse.y * H - top) / spacing;
+
+      ctx.lineWidth = Math.max(1, W / 460);
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = GREEN;
+
+      // Back (top) to front (bottom) so nearer lines occlude farther ones.
+      for (let r = 0; r < ROWS; r++) {
+        const base = top + r * spacing;
+        const rowPhase = r * 0.42 + t * 0.9;
+        const dr = (r - mrow) / 6;
+
+        for (let i = 0; i <= SAMPLES; i++) {
+          const x = i / SAMPLES;
+          const env = envelope(x);
+          let n = fbm(x * 7.5, rowPhase);
+          n = Math.max(0, n + 0.18);
+          n = Math.pow(n, 1.6) * 1.9;                       // spikier peaks
+          // Lift the signal around the cursor while hovering
+          const dx = (x - mx) / 0.12;
+          const boost = 1 + activity * 0.9 * Math.exp(-(dx * dx + dr * dr));
+          const shimmer = noise(x * 40, r * 3.1 + jitter) * 0.035 * activity;
+          ys[i] = base - (env * n * boost + shimmer * (0.3 + env)) * amp;
+        }
+
+        // Occlude whatever is behind, then stroke
+        ctx.beginPath();
+        tracePath(padX, plotW);
+        ctx.lineTo(padX + plotW, base + spacing * 1.5);
+        ctx.lineTo(padX, base + spacing * 1.5);
+        ctx.closePath();
+        ctx.fillStyle = '#000';
+        ctx.fill();
+
+        ctx.beginPath();
+        tracePath(padX, plotW);
+        ctx.stroke();
+      }
+    }
+
+    // ---------- Loop ----------
+    let prevNow = null;
+    let looping = false;
+    function frame(now) {
+      const dt = prevNow === null ? 0 : Math.min(0.05, (now - prevNow) / 1000);
+      prevNow = now;
+
+      const target = hovering ? 1 : 0;
+      activity += (target - activity) * Math.min(1, dt * 4);
+      if (!hovering && activity < 0.002) activity = 0;
+
+      t += dt * activity;
+      draw();
+
+      if (hovering || activity > 0) requestAnimationFrame(frame);
+      else { looping = false; prevNow = null; }   // settled: idle until next hover
+    }
+
+    function start() {
+      if (!looping) { looping = true; requestAnimationFrame(frame); }
+    }
+
+    function setMouse(e) {
+      const r = canvas.getBoundingClientRect();
+      mouse.x = (e.clientX - r.left) / r.width;
+      mouse.y = (e.clientY - r.top) / r.height;
+    }
+
+    canvas.addEventListener('pointerenter', e => { hovering = true; setMouse(e); start(); });
+    canvas.addEventListener('pointermove', setMouse);
+    canvas.addEventListener('pointerleave', () => { hovering = false; start(); });
+
+    seed(1919);
+    new ResizeObserver(resize).observe(canvas);
+  })();
   </script>
 </body>
-
 </html>
